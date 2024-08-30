@@ -1,13 +1,9 @@
 #!/bin/bash
 
 #=================================================
-# COMMON VARIABLES
+# COMMON VARIABLES AND CUSTOM HELPERS
 #=================================================
 # PHP APP SPECIFIC
-#=================================================
-
-#=================================================
-# PERSONAL HELPERS
 #=================================================
 
 patch_app() {
@@ -17,17 +13,17 @@ patch_app() {
 }
 
 config_horde() {
-    ynh_add_config --template="horde_conf.php" --destination="$install_dir/horde/config/conf.php"
-    ynh_add_config --template="/horde_imp_conf.php" --destination="$install_dir/horde/imp/config/conf.php"
-    ynh_add_config --template="horde_registry.php" --destination="$install_dir/horde/config/registry.local.php"
-    ynh_add_config --template="gollem_backends.php" --destination="$install_dir/horde/gollem/config/backends.local.php"
-    ynh_add_config --template="ingo_backends.php" --destination="$install_dir/horde/ingo/config/backends.local.php"
+    ynh_config_add --template="horde_conf.php" --destination="$install_dir/horde/config/conf.php"
+    ynh_config_add --template="/horde_imp_conf.php" --destination="$install_dir/horde/imp/config/conf.php"
+    ynh_config_add --template="horde_registry.php" --destination="$install_dir/horde/config/registry.local.php"
+    ynh_config_add --template="gollem_backends.php" --destination="$install_dir/horde/gollem/config/backends.local.php"
+    ynh_config_add --template="ingo_backends.php" --destination="$install_dir/horde/ingo/config/backends.local.php"
 }
 
 config_nginx() {
-    ynh_add_nginx_config
+    ynh_config_add_nginx
     [[ $service_autodiscovery ]] && add_nginx_autodiscovery
-    ynh_store_file_checksum --file "/etc/nginx/conf.d/$domain.d/$app.conf"
+    ynh_store_file_checksum  "/etc/nginx/conf.d/$domain.d/$app.conf"
 }
 
 add_nginx_autodiscovery() {
@@ -60,16 +56,8 @@ add_nginx_autodiscovery() {
 }
 
 set_permission() {
-    chown -R www-data:$app $install_dir
+    #REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown -R www-data:$app $install_dir
     chown -R www-data:$app $data_dir
-    chmod u=rwX,g=rwX,o= -R $install_dir
+    #REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod u=rwX,g=rwX,o= -R $install_dir
     chmod u=rwX,g=rwX,o= -R $data_dir
 }
-
-#=================================================
-# EXPERIMENTAL HELPERS
-#=================================================
-
-#=================================================
-# FUTURE OFFICIAL HELPERS
-#=================================================

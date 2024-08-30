@@ -1,37 +1,23 @@
 #!/bin/bash
 
-#=================================================
-# GENERIC START
-#=================================================
-# IMPORT GENERIC HELPERS
-#=================================================
-
 source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
-# CHECK VERSION
-#=================================================
-
-upgrade_type=$(ynh_check_app_version_changed)
-
-#=================================================
 # PHP-FPM CONFIGURATION
 #=================================================
-ynh_script_progression --message="Upgrading PHP-FPM configuration..." --weight=1
+ynh_script_progression "Upgrading PHP-FPM configuration..."
 
 # Create a dedicated PHP-FPM config
-ynh_add_fpm_config
+ynh_config_add_phpfpm
 
 # Create a dedicated NGINX config
 config_nginx
 
 #=================================================
-# SPECIFIC UPGRADE
-#=================================================
 # UPGRADE SOURCE FILE
 #=================================================
-ynh_script_progression --message="Upgrading source files..." --weight=6
+ynh_script_progression "Upgrading source files..."
 
 pear_cmd="$install_dir/pear/pear -c $install_dir/pear.conf"
 $pear_cmd channel-update pear.horde.org
@@ -40,37 +26,35 @@ $pear_cmd upgrade -R $install_dir -a -B -c pear.horde.org || true
 #=================================================
 # PATCH APPLICATION
 #=================================================
-ynh_script_progression --message="Patching application..." --weight=7
+ynh_script_progression "Patching application..."
 
 patch_app
 
 #=================================================
 # CONFIGURE HORDE
 #=================================================
-ynh_script_progression --message="Configuring application..." --weight=3
+ynh_script_progression "Configuring application..."
 
 config_horde
 
 #=================================================
 # SECURE FILES AND DIRECTORIES
 #=================================================
-ynh_script_progression --message="Protecting directory..."
+ynh_script_progression "Protecting directory..."
 
 set_permission
 
 #=================================================
-# GENERIC FINALIZATION
-#=================================================
 # SETUP LOGROTATE
 #=================================================
-ynh_script_progression --message="Upgrading logrotate configuration..." --weight=1
+ynh_script_progression "Upgrading logrotate configuration..."
 
-ynh_use_logrotate --logfile="$install_dir/horde" --nonappend --specific_user www-data/horde
-ynh_use_logrotate --logfile="$install_dir/horde/services" --specific_user www-data/horde
-ynh_use_logrotate --logfile="$install_dir/horde/services/portal" --specific_user www-data/horde
+ynh_config_add_logrotate "$install_dir/horde"  www-data/horde
+ynh_config_add_logrotate "$install_dir/horde/services"  www-data/horde
+ynh_config_add_logrotate "$install_dir/horde/services/portal"  www-data/horde
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Upgrade of $app completed" --last
+ynh_script_progression "Upgrade of $app completed"

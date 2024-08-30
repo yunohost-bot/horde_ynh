@@ -1,11 +1,5 @@
 #!/bin/bash
 
-#=================================================
-# GENERIC START
-#=================================================
-# IMPORT GENERIC HELPERS
-#=================================================
-
 source _common.sh
 source /usr/share/yunohost/helpers
 
@@ -16,7 +10,7 @@ source /usr/share/yunohost/helpers
 # Set list of optionnal app to install
 optionnal_apps_list=""
 
-ynh_script_progression --message="Configuring options and language..."
+ynh_script_progression "Configuring options and language..."
 
 if [[ $whups_install == 1 ]]
 then
@@ -36,15 +30,14 @@ then
 fi
 
 #=================================================
-# STANDARD MODIFICATIONS
-#=================================================
 
 # Enable all necessary locales
 if [[ "$language" != "en" ]]
 then
     locale_lang=$(egrep -i "(${language})_\1\.UTF-8" /etc/locale.gen | egrep -o "[a-z]{2}_[A-Z]{2}\.UTF-8")
     for l in $locale_lang; do
-        ynh_replace_string "^#\s$l" "$l" /etc/locale.gen
+        # FIXMEhelpers2.1: ynh_replace used with positional args. Please add the keywords: --match=, --replace=, --file=
+ynh_replace "^#\s$l" "$l" /etc/locale.gen
     done
     locale-gen
 fi
@@ -52,22 +45,21 @@ fi
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
-ynh_script_progression --message="Setting up source files..." --weight=1
+ynh_script_progression "Setting up source files..."
 
 # Download, check integrity, uncompress and patch the source from app.src
 mkdir $install_dir/data
 
-chmod 750 "$install_dir"
-chmod -R o-rwx "$install_dir"
-chown -R $app:www-data "$install_dir"
-
+#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod 750 "$install_dir"
+#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod -R o-rwx "$install_dir"
+#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown -R $app:www-data "$install_dir"
 #=================================================
 # SYSTEM CONFIGURATION
 #=================================================
-ynh_script_progression --message="Adding system configurations related to $app..." --weight=1
+ynh_script_progression "Adding system configurations related to $app..."
 
 # Create a dedicated PHP-FPM config
-ynh_add_fpm_config
+ynh_config_add_phpfpm
 
 # Create a dedicated NGINX config
 config_nginx
@@ -75,7 +67,7 @@ config_nginx
 #=================================================
 # INSTALL SOURCE FILES
 #=================================================
-ynh_script_progression --message="Installing sources files..." --weight=7
+ynh_script_progression "Installing sources files..."
 
 # Set execution for expect scripts
 chmod +x ../conf/init_horde_install.exp
@@ -99,42 +91,40 @@ $pear_cmd install -a -B horde/webmail $optionnal_apps_list
 
 PHP_PEAR_SYSCONF_DIR=$install_dir ../conf/config_horde.exp "$install_dir" "$db_name" "$db_user" "$db_pwd" "$admin"
 secret_key=$(grep 'secret_key' "$install_dir/horde/config/conf.php" | cut -d"'" -f4)
-ynh_app_setting_set --app=$app --key=secret_key --value="$secret_key"
+ynh_app_setting_set --key=secret_key --value="$secret_key"
 
 #=================================================
 # PATCH APPLICATION
 #=================================================
-ynh_script_progression --message="Patching application..." --weight=7
+ynh_script_progression "Patching application..."
 
 patch_app
 
 #=================================================
 # CONFIGURE HORDE
 #=================================================
-ynh_script_progression --message="Configuring application..." --weight=3
+ynh_script_progression "Configuring application..."
 
 config_horde
 
 #=================================================
 # SECURE FILES AND DIRECTORIES
 #=================================================
-ynh_script_progression --message="Protecting directory..." --weight=1
+ynh_script_progression "Protecting directory..."
 
 set_permission
 
 #=================================================
-# GENERIC FINALIZATION
-#=================================================
 # SETUP LOGROTATE
 #=================================================
-ynh_script_progression --message="Configuring log rotation..." --weight=1
+ynh_script_progression "Configuring log rotation..."
 
-ynh_use_logrotate --logfile="$install_dir/horde" --nonappend --specific_user www-data/horde
-ynh_use_logrotate --logfile="$install_dir/horde/services" --specific_user www-data/horde
-ynh_use_logrotate --logfile="$install_dir/horde/services/portal" --specific_user www-data/horde
+ynh_config_add_logrotate "$install_dir/horde"  www-data/horde
+ynh_config_add_logrotate "$install_dir/horde/services"  www-data/horde
+ynh_config_add_logrotate "$install_dir/horde/services/portal"  www-data/horde
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Installation of $app completed" --last
+ynh_script_progression "Installation of $app completed"
