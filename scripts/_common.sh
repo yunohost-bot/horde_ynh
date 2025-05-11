@@ -54,8 +54,8 @@ add_nginx_autodiscovery() {
 }
 
 set_permission() {
-    #REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown -R www-data:$app $install_dir
+    chown -R www-data:$app $install_dir
     chown -R www-data:$app $data_dir
-    #REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod u=rwX,g=rwX,o= -R $install_dir
+    chmod u=rwX,g=rwX,o= -R $install_dir
     chmod u=rwX,g=rwX,o= -R $data_dir
 }

@@ -36,8 +36,7 @@ if [[ "$language" != "en" ]]
 then
     locale_lang=$(egrep -i "(${language})_\1\.UTF-8" /etc/locale.gen | egrep -o "[a-z]{2}_[A-Z]{2}\.UTF-8")
     for l in $locale_lang; do
-        # FIXMEhelpers2.1: ynh_replace used with positional args. Please add the keywords: --match=, --replace=, --file=
-ynh_replace "^#\s$l" "$l" /etc/locale.gen
+        ynh_replace --match="^#\s$l" --replace="$l" --file=/etc/locale.gen
     done
     locale-gen
 fi
