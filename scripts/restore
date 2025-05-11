@@ -18,9 +18,6 @@ ynh_script_progression "Restoring the data directory..."
 
 ynh_restore "$data_dir"
 
-# (Same as for install dir)
-chown -R $app:www-data "$data_dir"
-
 #=================================================
 # RESTORE THE MYSQL DATABASE
 #=================================================
@@ -59,6 +56,7 @@ ynh_config_add_logrotate "$install_dir/horde/services/portal"  www-data/horde
 ynh_script_progression "Reloading NGINX web server and PHP-FPM..."
 
 ynh_systemctl --service=php$php_version-fpm --action=reload
+
 ynh_systemctl --service=nginx --action=reload
 
 #=================================================

@@ -6,8 +6,6 @@ source /usr/share/yunohost/helpers
 #=================================================
 # STANDARD REMOVE
 #=================================================
-# REMOVE LOGROTATE CONFIGURATION
-#=================================================
 ynh_script_progression "Removing logrotate configuration..."
 
 # Remove the app-specific logrotate config
